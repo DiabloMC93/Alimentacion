@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen de Nutrición</title>
+    <style>
+        :root {
+            --primary: #8b5cf6; /* Violeta moderno */
+            --primary-dark: #7c3aed;
+            --success: #10b981; /* Verde esmeralda */
+            --error: #ef4444; /* Rojo suave */
+            --bg: #f3f4f6; /* Gris muy claro */
+            --card: #ffffff;
+            --text-main: #1f2937;
+            --text-sec: #6b7280;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Contenedor Principal (Tarjeta) */
+        .app-container {
+            background-color: var(--card);
+            width: 100%;
+            max-width: 700px;
+            min-height: 550px;
+            margin: 20px;
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Cabecera con estadísticas */
+        .header {
+            background-color: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .counters {
+            display: flex;
+            gap: 15px;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .counter-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+
+        .c-correct { background-color: #d1fae5; color: #065f46; }
+        .c-wrong { background-color: #fee2e2; color: #991b1b; }
+        
+        /* Barra de progreso */
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background-color: #e5e7eb;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        /* Área de contenido (Preguntas) */
+        .content-area {
+            padding: 40px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            
+            /* Animación de entrada */
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-number {
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            font-size: 1.35rem;
+            font-weight: 700;
+            line-height: 1.4;
+            margin-bottom: 30px;
+            color: var(--text-main);
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px 20px;
+            text-align: left;
+            font-size: 1rem;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .option-letter {
+            font-weight: 800;
+            color: var(--primary);
+            background: #f5f3ff;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background-color: #f5f3ff;
+            transform: translateY(-2px);
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+            opacity: 0.8;
+        }
+
+        /* Estilos de validación */
+        .option-btn.correct {
+            border-color: var(--success);
+            background-color: #ecfdf5;
+            color: #065f46;
+        }
+        
+        .option-btn.correct .option-letter {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .option-btn.correct::after {
+            content: "✓";
+            position: absolute;
+            right: 20px;
+            font-weight: bold;
+            color: var(--success);
+            font-size: 1.2rem;
+        }
+
+        .option-btn.wrong {
+            border-color: var(--error);
+            background-color: #fef2f2;
+            color: #991b1b;
+        }
+
+        .option-btn.wrong .option-letter {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .option-btn.wrong::after {
+            content: "✕";
+            position: absolute;
+            right: 20px;
+            font-weight: bold;
+            color: var(--error);
+            font-size: 1.2rem;
+        }
+
+        /* Botón Siguiente */
+        .footer-controls {
+            padding: 20px 40px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: flex-end;
+            background-color: #f9fafb;
+        }
+
+        .next-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: none;
+            box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.4);
+        }
+
+        .next-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px -1px rgba(139, 92, 246, 0.5);
+        }
+
+        /* Pantalla de Resultados */
+        .results-screen {
+            text-align: center;
+            padding: 30px 20px;
+            display: none;
+        }
+
+        .score-circle {
+            width: 180px;
+            height: 180px;
+            background: conic-gradient(var(--primary) 0%, #e5e7eb 0%);
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .score-circle::before {
+            content: "";
+            width: 150px;
+            height: 150px;
+            background-color: white;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .score-content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .score-number {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1;
+        }
+        
+        .score-label {
+            font-size: 0.8rem;
+            color: var(--text-sec);
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+
+        .message {
+            font-size: 1.5rem;
+            color: var(--text-main);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .stats-summary {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+            color: var(--text-sec);
+            font-size: 1rem;
+        }
+        
+        .stat-detail {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .stat-val {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-main);
+        }
+
+        .restart-btn {
+            background-color: var(--text-main);
+            color: white;
+            padding: 16px 40px;
+            border-radius: 12px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            background-color: black;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <header class="header" id="app-header">
+        <div class="counters">
+            <div class="counter-item c-correct">
+                <span>Aciertos:</span>
+                <span id="score-correct">0</span>
+            </div>
+            <div class="counter-item c-wrong">
+                <span>Fallos:</span>
+                <span id="score-wrong">0</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="content-area" id="quiz-area">
+        <div class="question-number" id="q-number">PREGUNTA 1</div>
+        <div class="question-text" id="q-text">Cargando...</div>
+        <div class="options-list" id="options-list">
+            <!-- JS Generates this -->
+        </div>
+    </div>
+
+    <div class="results-screen content-area" id="results-area">
+        <h2 style="color: var(--primary); margin-bottom: 20px; font-weight: 800;">RESULTADOS</h2>
+        
+        <div class="score-circle" id="score-circle">
+            <div class="score-content">
+                <span class="score-number" id="final-grade">0.0</span>
+                <span class="score-label">Nota Final</span>
+            </div>
+        </div>
+
+        <p class="message" id="final-message">Calculando...</p>
+        
+        <div class="stats-summary">
+            <div class="stat-detail">
+                <span class="stat-val" style="color: var(--success);" id="final-correct">0</span>
+                <span>Aciertos (+0.25)</span>
+            </div>
+            <div class="stat-detail">
+                <span class="stat-val" style="color: var(--error);" id="final-wrong">0</span>
+                <span>Fallos (-0.08)</span>
+            </div>
+        </div>
+
+        <div>
+            <button class="restart-btn" onclick="restartQuiz()">Repetir Examen</button>
+        </div>
+    </div>
+
+    <footer class="footer-controls" id="quiz-footer">
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">Siguiente &rarr;</button>
+    </footer>
+</div>
+
+<script>
+    const questions = [
+        { q: "A partir del segundo trimestre de embarazo se recomienda en la mujer un aumento de:", options: ["100 kcal/día", "500 kcal/día", "300 kcal/día", "600 kcal/día"], correct: 2 },
+        { q: "Contiene un 21% de proteína de alto valor biológico:", options: ["Leche", "Huevo", "Pescado", "Carne"], correct: 3 },
+        { q: "El %PTP es:", options: ["El porcentaje total de proteínas", "El porcentaje total de peso perdido", "El porcentaje de peso ganado", "El porcentaje de músculo del cuerpo"], correct: 1 },
+        { q: "El efecto térmico de los alimentos representa el:", options: ["2-3% del gasto energético total", "20-30% del gasto energético total", "25-35% del gasto energético total", "5-15% del gasto energético total"], correct: 3 },
+        { q: "El factor intrínseco es fundamental para la absorción de la:", options: ["Vitamina A", "Vitamina B9", "Vitamina B12", "Vitamina C"], correct: 2 },
+        { q: "Es correcto sobre DietoPro:", options: ["Tiene una base de datos de 100 platos", "No se pueden crear nuevos platos y recetas", "No tiene en cuenta las interacciones fármaco-alimento", "Genera una lista de la compra con los alimentos de la dieta"], correct: 3 },
+        { q: "Es correcto sobre las calculadoras nutricionales:", options: ["Deben estar diseñadas por personas cualificadas", "Deben estar basadas en evidencias científicas", "Permiten evaluar platos y dietas", "Todas las respuestas son correctas"], correct: 3 },
+        { q: "Es correcto:", options: ["Kosher son los alimentos no permitidos del judaísmo", "Kosher son los alimentos permitidos del judaísmo", "Talef son los alimentos permitidos del judaísmo", "Haram son los alimentos no permitidos en el budismo"], correct: 1 },
+        { q: "Es incorrecto sobre DietoPro:", options: ["No consta de un simulador para casos prácticos", "Se accede y trabaja desde la página web", "Consta de más de 5500 platos", "Es un software autómata"], correct: 3 },
+        { q: "Es incorrecto sobre la alimentación saludable o equilibrada:", options: ["Aporta la cantidad adecuada de alimentos", "Aporta los nutrientes necesarios cuantitativamente y cualitativamente", "Deber ser variada", "No influyen la edad o el estado fisiológico de la persona"], correct: 3 },
+        { q: "Es necesario que se aporten a través de la dieta:", options: ["Nutrientes no esenciales", "Nutrientes esenciales", "Nutrientes especiales", "Nutrientes clave"], correct: 1 },
+        { q: "No se recomienda para madres en periodo de lactancia:", options: ["Incluir fruta fresca, verdura, lácteos, huevos y nueces", "Realizar 4-6 tomas de alimentos durante el día", "Evitar alcachofas, ajos, cebollas y espárragos", "Tomar té y café"], correct: 3 },
+        { q: "Es un derivado de la leche:", options: ["Helado", "Nata", "Mantequilla", "Todas las respuestas son correctas"], correct: 3 },
+        { q: "Es un nutriente esencial:", options: ["Hidratos de carbono", "Proteínas", "Lípidos", "Todas las respuestas son correctas"], correct: 1 },
+        { q: "Es un nutriente:", options: ["Agua", "Vitaminas", "Hidratos de carbono", "Todas las respuestas son correctas"], correct: 3 },
+        { q: "No es una función de los lípidos:", options: ["Energética", "Reguladora", "Saciante", "Inmunológica"], correct: 3 },
+        { q: "No forma parte de los jugos gástricos:", options: ["Ácido clorhídrico", "Pepsinógeno", "Bicarbonato y moco", "Ácido sulfúrico"], correct: 3 },
+        { q: "Con respecto a la restauración colectiva hospitalaria:", options: ["El dietista se coloca al principio de la cinta", "La vajilla se mantiene a 20°C", "La comida que sobra en la cinta puede congelarse", "La temperatura en el interior del alimento caliente debe ser superior a 65°C"], correct: 3 },
+        { q: "Es una recomendación dietética para las mujeres con menopausia:", options: ["Moderar el aporte energético", "Disminuir la actividad física", "Realizar 3 comidas al día", "Aportar 20% del VCT en azúcares simples"], correct: 0 },
+        { q: "Es una recomendación general para la población adulta sana:", options: ["Consumir 3 o más raciones de fruta al día", "Consumir 1 ración de pescado al mes", "Consumir 3 o más raciones de huevos al día", "Consumir 3 o más raciones de embutidos al día"], correct: 0 },
+        { q: "Estudia el calor y las distintas formas de energía:", options: ["Termodinámica", "Bioenergética", "Bioimpedancia", "ATP"], correct: 0 },
+        { q: "Forma glucídica de reserva de energía más común en cereales, legumbres y tubérculos:", options: ["Glucógeno", "Almidón", "Glucosa", "Insulina"], correct: 1 },
+        { q: "Las siglas GEB se corresponden con:", options: ["Gasto metabólico basal", "Gasto por actividad física", "Gasto energético total", "Gasto energético parcial"], correct: 0 },
+        { q: "La definición genérica \"huevo\" hace referencia a los huevos procedentes de:", options: ["Las gallináceas", "Las ocas", "Las codornices", "Avestruz"], correct: 0 },
+        { q: "La fibra insoluble:", options: ["Disminuye la absorción de colesterol", "Ralentiza la absorción de glucosa", "Tiene efecto saciante", "Aumenta la masa fecal y retiene agua"], correct: 3 },
+        { q: "La lactosa está formada por:", options: ["Glucosa y fructosa", "Glucosa y glucosa", "Glucosa y galactosa", "Fructosa y galactosa"], correct: 2 },
+        { q: "La pasteurización de la leche consiste en:", options: ["63°C durante 30 minutos", "150°C durante 2-16 segundos", "115°C durante 15 minutos", "Ninguna de las respuestas es correcta"], correct: 0 },
+        { q: "Los alimentos que contienen hierro hemo son:", options: ["Legumbres", "Carnes y pescados", "Hortalizas", "Fruta"], correct: 1 },
+        { q: "No es correcto sobre el estrés en relación con la alimentación:", options: ["Cada persona reacciona de una forma diferente ante el estrés", "Puede afectar a las conductas alimentarias", "No afecta a los hábitos alimenticios", "Si se prolonga en el tiempo puede ocasionar problemas de salud"], correct: 2 },
+        { q: "No se recomienda al paciente antes de realizar una bioimpedancia:", options: ["Realizar ejercicio físico el mismo día de la valoración nutricional", "Retirar los elementos metálicos del cuerpo", "Evitar la pesada durante la menstruación", "Orinar 30 minutos antes"], correct: 0 },
+        { q: "Nootric es:", options: ["Una calculadora de calorías", "Una báscula de bioimpedancia", "Una aplicación móvil sobre alimentación saludable", "Una aplicación móvil para entrenamientos deportivos"], correct: 2 },
+        { q: "Para aumentar de peso el balance de la ingesta de nutrientes debe ser:", options: ["Negativo", "Positivo", "Igual a 0", "No repercute la ingesta"], correct: 1 },
+        { q: "Proceso voluntario de ingerir alimentos:", options: ["Nutrición", "Metabolismo", "Alimentación", "Dieta"], correct: 2 },
+        { q: "Pueden ser aprovechados como fuente de energía:", options: ["Proteínas", "Vitaminas", "Minerales", "Fibra"], correct: 0 },
+        { q: "Respecto al déficit de los nutrientes esenciales es incorrecto:", options: ["Si solo hay déficit de uno de ellos no ocasiona problemas de salud", "Puede ocasionar incluso la muerte", "El déficit de cualquiera de ellos puede ocasionar problemas de salud", "El exceso de ellos puede ser perjudicial"], correct: 0 },
+        { q: "Se trata de una reacción en la que se crean nuevas moléculas y se requiere energía:", options: ["Heterótrofos", "Catabolismo", "Autótrofos", "Anabolismo"], correct: 3 },
+        { q: "Si hay un exceso de glucosa se:", options: ["Elimina", "Se destina a la formación de ácido láctico", "Se acumula en tejido adiposo", "Hay hipoglucemia"], correct: 2 },
+        { q: "Son factores que afectan la elección de alimentos:", options: ["Modas", "Publicidad", "Problemas físicos", "Todas las respuestas son correctas"], correct: 3 },
+        { q: "Son platos cocinados que se envasan en recipientes herméticos y son sometidos a un proceso de esterilización superior a 100ºC:", options: ["Platos de gama II", "Platos de gama III", "Platos de gama IV", "Platos de gama V"], correct: 0 },
+        { q: "Durante el primer año de vida las necesidades energéticas son de:", options: ["200 Kcal/Kg/día", "300 Kcal/Kg/día", "50 Kcal/Kg/día", "100 Kcal/Kg/día"], correct: 3 }
+    ];
+
+    let currentIdx = 0;
+    let scoreCorrect = 0;
+    let scoreWrong = 0;
+
+    const ui = {
+        progressBar: document.getElementById('progress-bar'),
+        scoreCorrect: document.getElementById('score-correct'),
+        scoreWrong: document.getElementById('score-wrong'),
+        qNumber: document.getElementById('q-number'),
+        qText: document.getElementById('q-text'),
+        optionsList: document.getElementById('options-list'),
+        nextBtn: document.getElementById('next-btn'),
+        quizArea: document.getElementById('quiz-area'),
+        resultsArea: document.getElementById('results-area'),
+        appHeader: document.getElementById('app-header'),
+        quizFooter: document.getElementById('quiz-footer'),
+        finalGrade: document.getElementById('final-grade'),
+        scoreCircle: document.getElementById('score-circle'),
+        finalMessage: document.getElementById('final-message'),
+        finalCorrect: document.getElementById('final-correct'),
+        finalWrong: document.getElementById('final-wrong')
+    };
+
+    function initQuiz() {
+        currentIdx = 0;
+        scoreCorrect = 0;
+        scoreWrong = 0;
+        
+        ui.resultsArea.style.display = 'none';
+        ui.quizArea.style.display = 'flex';
+        ui.appHeader.style.display = 'flex';
+        ui.quizFooter.style.display = 'flex';
+        
+        updateStats();
+        loadQuestion();
+    }
+
+    function updateStats() {
+        ui.scoreCorrect.innerText = scoreCorrect;
+        ui.scoreWrong.innerText = scoreWrong;
+        const progress = ((currentIdx) / questions.length) * 100;
+        ui.progressBar.style.width = `${progress}%`;
+    }
+
+    function loadQuestion() {
+        ui.quizArea.style.animation = 'none';
+        ui.quizArea.offsetHeight; 
+        ui.quizArea.style.animation = 'fadeIn 0.5s ease-out';
+
+        const q = questions[currentIdx];
+        
+        ui.qNumber.innerText = `PREGUNTA ${currentIdx + 1} DE ${questions.length}`;
+        ui.qText.innerText = q.q;
+        ui.optionsList.innerHTML = '';
+        ui.nextBtn.style.display = 'none';
+
+        const letters = ['A', 'B', 'C', 'D'];
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            
+            const letterSpan = document.createElement('span');
+            letterSpan.className = 'option-letter';
+            letterSpan.innerText = letters[index] || '';
+            
+            const textSpan = document.createElement('span');
+            textSpan.innerText = opt;
+
+            btn.appendChild(letterSpan);
+            btn.appendChild(textSpan);
+            
+            btn.onclick = () => selectOption(index, btn);
+            ui.optionsList.appendChild(btn);
+        });
+
+        updateStats();
+    }
+
+    function selectOption(selectedIndex, btnElement) {
+        if (ui.nextBtn.style.display === 'block') return;
+
+        const q = questions[currentIdx];
+        const buttons = ui.optionsList.querySelectorAll('.option-btn');
+
+        buttons.forEach(b => b.disabled = true);
+
+        if (selectedIndex === q.correct) {
+            btnElement.classList.add('correct');
+            scoreCorrect++;
+        } else {
+            btnElement.classList.add('wrong');
+            buttons[q.correct].classList.add('correct');
+            scoreWrong++;
+        }
+
+        updateStats();
+        ui.nextBtn.style.display = 'block';
+        ui.nextBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < questions.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        ui.quizArea.style.display = 'none';
+        ui.appHeader.style.display = 'none';
+        ui.quizFooter.style.display = 'none';
+        ui.progressBar.style.width = '100%';
+        
+        ui.resultsArea.style.display = 'block';
+        
+        // +0.25 por acierto, -0.08 por fallo
+        // Max: 40 * 0.25 = 10
+        let rawScore = (scoreCorrect * 0.25) - (scoreWrong * 0.08);
+        if (rawScore < 0) rawScore = 0; 
+        
+        // Ajuste para mostrar nota sobre 10 aunque se use otra escala (aquí coincide porque 40*0.25=10)
+        let maxScore = questions.length * 0.25;
+        let percentage = (rawScore / maxScore) * 100;
+
+        ui.finalGrade.innerText = rawScore.toFixed(2);
+        ui.finalCorrect.innerText = scoreCorrect;
+        ui.finalWrong.innerText = scoreWrong;
+
+        const color = rawScore >= 5 ? 'var(--success)' : 'var(--error)';
+        ui.scoreCircle.style.background = `conic-gradient(${color} ${percentage}%, #e5e7eb ${percentage}%)`;
+        ui.finalGrade.style.color = color;
+
+        if (rawScore >= 9) {
+            ui.finalMessage.innerText = "¡Sobresaliente! 🌟";
+        } else if (rawScore >= 7) {
+            ui.finalMessage.innerText = "¡Notable! 💪";
+        } else if (rawScore >= 5) {
+            ui.finalMessage.innerText = "Aprobado 👍";
+        } else {
+            ui.finalMessage.innerText = "Suspenso 📚";
+        }
+    }
+
+    function restartQuiz() {
+        initQuiz();
+    }
+
+    initQuiz();
+</script>
+
+</body>
+</html>
